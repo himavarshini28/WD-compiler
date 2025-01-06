@@ -4,20 +4,23 @@ import { tags as t } from '@lezer/highlight';
 import { draculaInit } from '@uiw/codemirror-theme-dracula';
 import { loadLanguage } from '@uiw/codemirror-extensions-langs';
 import { RootState } from './redux/store';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateCode } from './redux/slices/compilerSlice';
 
 const CodeEditor = () => {
   const currentLanguage=useSelector((state:RootState)=>state.compilerSlice.currentLanguage)
-
-    const [value, setValue] = React.useState("console.log('hello world!');");
-    const onChange = React.useCallback((val : any) => {
-      console.log('val:', val);
-      setValue(val);
+  const fullCode= useSelector((state:RootState)=>state.compilerSlice.fullCode)
+ 
+  const dispatch=useDispatch()
+      const onChange = React.useCallback((value : string) => {
+      dispatch(updateCode(value))
     }, []);
   return (
-    <CodeMirror
-     value={value} 
-     height="100vh" 
+    
+    <CodeMirror 
+    
+     value={fullCode[currentLanguage]} 
+      height="calc(100vh - 60px - 50px)"
      extensions={[loadLanguage(currentLanguage)!]}
      onChange={onChange} 
      theme={draculaInit({
@@ -29,7 +32,8 @@ const CodeEditor = () => {
         { tag: t.comment, color: '#6272a4' },
       ]
     })}
-     />  );
+     />
+    );
 }
 
 export default CodeEditor

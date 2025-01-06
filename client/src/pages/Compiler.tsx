@@ -12,7 +12,9 @@ const Compiler = () => {
   return (
     <ResizablePanelGroup direction="horizontal">
   <ResizablePanel className="h-[calc(100dvh-60px)] min-w-[350px]" defaultSize={50}>
-    <HelperHeader/>
+  <div className="sticky top-0 z-10 bg-gray-200">
+          <HelperHeader />
+        </div>
     <CodeEditor/>
     </ResizablePanel>
   <ResizableHandle />

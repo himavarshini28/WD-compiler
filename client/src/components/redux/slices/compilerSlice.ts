@@ -9,9 +9,60 @@ export interface CompilerSliceStateType {
 
 const initialState: CompilerSliceStateType = {
   fullCode: {
-    html: "This is HTML code",
-    css: "This is CSS code",
-    javascript: "This is Javascript code",
+    html: `
+<html lang="en">
+  <body>
+    <div class="container">
+        <h1>To-Do List</h1>
+        <input type="text" id="taskInput" placeholder="Enter your task">
+        <button onclick="addTask()">Add Task</button>
+        <ul id="taskList"></ul>
+    </div>
+  <script src="script.js"></script>
+  </body>
+</html>
+    `,
+    css: `
+  body {
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 50vh;
+      margin: 0;
+  }
+  
+  .container {
+      text-align: center;
+  }
+  
+  input {
+      padding: 8px;
+      margin-right: 8px;
+  }
+  
+  button {
+      padding: 8px;
+  }  
+    `,
+    javascript: `
+    function addTask() {
+  
+      var taskInput = document.getElementById('taskInput');
+      var taskList = document.getElementById('taskList');
+      if (taskInput.value !== '') {
+          var taskItem = document.createElement('li');
+          taskItem.textContent = taskInput.value;
+          taskList.appendChild(taskItem);
+          taskInput.value = '';
+  
+          taskItem.addEventListener('click', function () {
+              taskList.removeChild(taskItem);
+          });
+      }
+  }
+  
+    `,
   },
   currentLanguage: "html",
   currentCode: "",

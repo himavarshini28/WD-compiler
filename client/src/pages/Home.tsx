@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import { Code, Terminal, Share2, Play, Sparkles } from "lucide-react";
+import { Code, Share2, Play, Sparkles } from "lucide-react";
 
 const Home = () => {
   const navigate = useNavigate();

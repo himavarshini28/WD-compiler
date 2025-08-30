@@ -1,9 +1,11 @@
-import Header from "./components/Header"
+import Header from "./components/Header";
 import {Route,Routes} from "react-router-dom";
 import Home from "./pages/Home";
 import Compiler from "./pages/Compiler";
 import NotFound from "./pages/NotFound";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider } from "./components/theme-provider";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 
 function App() {
   return (
@@ -13,6 +15,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Home/>}/>
           <Route path="/compiler" element={<Compiler/>}/>
+          <Route path="/login" element={<Login/>}/>
+           <Route path="/signup" element={<Signup/>}/>
           <Route path="*" element={<NotFound/>}/>
         </Routes>
         </ThemeProvider>
@@ -20,4 +24,4 @@ function App() {
   )
 }
 
-export default App
+export default App;

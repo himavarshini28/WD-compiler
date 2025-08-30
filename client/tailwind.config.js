@@ -52,7 +52,15 @@ export default {
   				'3': 'hsl(var(--chart-3))',
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
-  			}
+  			},
+			  keyframes: {
+    'fade-in': { '0%': { opacity: 0 }, '100%': { opacity: 1 } },
+    'fade-in-up': { '0%': { opacity: 0, transform: 'translateY(40px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
+  },
+  animation: {
+    'fade-in': 'fade-in 0.8s ease-out',
+    'fade-in-up': 'fade-in-up 1s cubic-bezier(.39,.575,.565,1.000)',
+  },
   		}
   	}
   },

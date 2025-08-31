@@ -15,7 +15,6 @@ const Header = () => {
         <Link to="/learn" className="text-white font-semibold hover:text-blue-400 transition-colors">Learn More</Link>
         {user ? (
           <>
-            <Link to="/profile" className="text-white font-semibold hover:text-blue-400 transition-colors">Profile</Link>
             <button
               className="text-white font-semibold border border-white  p-2  rounded-lg hover:text-blue-400 transition-colors"
               onClick={() => auth.signOut()}

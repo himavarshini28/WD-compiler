@@ -14,7 +14,7 @@ const Home = () => {
   return (
     <div className="text-white w-full flex flex-col items-center justify-center gap-4 px-4 py-12 bg-gray-950 overflow-hidden min-h-screen">
 
-      <div className="max-w-7xl w-full flex flex-col lg:flex-row items-center justify-between gap-12 my-12 pb-12">
+      <div className="max-w-7xl w-full flex flex-col lg:flex-row items-center justify-between gap-12 my-12 py-12">
         {/* Hero Content */}
         <div className={`flex-1 flex flex-col gap-6 transition-all duration-1000 transform ${isVisible ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"}`}>
           <div className="flex items-center gap-2">

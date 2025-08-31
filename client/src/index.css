@@ -64,3 +64,15 @@
     @apply bg-background text-foreground;
   }
 }
+body {
+  scrollbar-width: none; 
+  -ms-overflow-style: none; 
+}
+body::-webkit-scrollbar {
+  display: none;}
+*::-webkit-scrollbar {
+  display: none;
+}
+* {
+  scrollbar-width: none; 
+  -ms-overflow-style: none; }

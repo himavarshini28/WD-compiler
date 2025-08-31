@@ -12,15 +12,13 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="text-white w-full min-h-[calc(100dvh-60px)] flex flex-col items-center justify-center gap-8 px-4 py-12 bg-gradient-to-br from-gray-900 to-gray-950 overflow-hidden">
-      <div className="max-w-5xl w-full flex flex-col lg:flex-row items-center justify-between gap-12">
+    <div className="text-white w-full flex flex-col items-center justify-center gap-4 px-4 py-12 bg-gray-950 overflow-hidden min-h-screen">
+
+      <div className="max-w-7xl w-full flex flex-col lg:flex-row items-center justify-between gap-12 my-12 pb-12">
         {/* Hero Content */}
         <div className={`flex-1 flex flex-col gap-6 transition-all duration-1000 transform ${isVisible ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"}`}>
           <div className="flex items-center gap-2">
-            <span className="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
-              <Sparkles size={14} />
-              Web Development Made Easy
-            </span>
+          
           </div>
           
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-blue-600">
@@ -33,19 +31,20 @@ const Home = () => {
           </p>
           
           <div className="flex flex-wrap gap-4 mt-2">
-            <Button 
-              size="lg" 
-              className="animate-shimmer bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] transition-colors text-white"
-              onClick={() => navigate("/compiler")}
-            >
-              <Play size={18} className="mr-2" />
-              Start Coding
-            </Button>
+           <Button
+  size="lg"
+  className="flex items-center  bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] text-white hover:bg-gray-800"
+  onClick={() => navigate("/compiler")}
+>
+  <Play size={18} className="mr-2" />
+  Start Coding
+</Button>
             
             <Button 
               variant="outline" 
               size="lg"
-              className="border-gray-700 hover:bg-gray-800"
+              className=" flex items-center border-gray-700 hover:bg-gray-800"
+              onClick={()=>navigate('/learn')}
             >
               <Terminal size={18} className="mr-2" />
               Learn More

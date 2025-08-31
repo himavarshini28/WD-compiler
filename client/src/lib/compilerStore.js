@@ -16,6 +16,9 @@ const useCompilerStore = create((set) => ({
   setLanguage: (lang) => set(() => ({
     currentLanguage: lang,
   })),
+  setFullCode: (codeObj) => set(() => ({
+    fullCode: codeObj,
+  })),
 }));
 
 export default useCompilerStore;

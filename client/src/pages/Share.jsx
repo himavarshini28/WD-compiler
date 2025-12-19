@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { db } from "../lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
 import RenderCode from "../components/RenderCode";
 
 
@@ -15,24 +13,39 @@ const Share = () => {
   const { id } = useParams();
   const [snippet, setSnippet] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [currentLanguage, setCurrentLanguage] = useState("html");
 
   useEffect(() => {
     const fetchSnippet = async () => {
-      const docRef = doc(db, "snippets", id);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setSnippet(docSnap.data());
+      try {
+        const apiUrl = import.meta.env.VITE_WS_URL?.replace('ws://', 'http://').replace('wss://', 'https://') || 'http://localhost:8080';
+        
+        const response = await fetch(`${apiUrl}/session/${id}`);
+        const data = await response.json();
+        
+        if (data.exists && data.code) {
+          setSnippet(data.code);
+        } else {
+          setError("Snippet not found or session expired.");
+        }
+      } catch (err) {
+        console.error('Error fetching snippet:', err);
+        setError("Failed to load snippet. Please try again.");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
-    fetchSnippet();
+    
+    if (id) {
+      fetchSnippet();
+    }
   }, [id]);
 
   if (loading) return <div className="text-white text-center mt-16">Loading...</div>;
+  if (error) return <div className="text-red-400 text-center mt-16 border border-red-500 bg-gray-800 rounded p-4 max-w-md mx-auto">{error}</div>;
   if (!snippet) return <div className="text-white text-center mt-16">Snippet not found.</div>;
 
-  // Combine code for live preview
   const srcDoc = `
     <html>
       <head>
@@ -45,7 +58,6 @@ const Share = () => {
     </html>
   `;
 
-  // Get code for selected language
   const getCode = () => {
     if (!snippet) return "";
     if (currentLanguage === "html") return snippet.html || "";

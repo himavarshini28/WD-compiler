@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 
 import { useParams } from "react-router-dom";
 import useCompilerStore from "../lib/compilerStore";
 import CodeEditor from "../components/CodeEditor";
 import RenderCode from "../components/RenderCode";
 import { Select } from "../components/ui/select";
-import { db } from "../lib/firebase";
-import { collection, addDoc, doc, onSnapshot, updateDoc } from "firebase/firestore";
 import useUserStore from "../lib/userStore";
+import wsService from "../lib/websocketService";
 
 const languageOptions = [
   { value: "html", label: "HTML" },
@@ -27,73 +26,134 @@ const Compiler = () => {
   const [shareId, setShareId] = useState("");
   const [collabLoading, setCollabLoading] = useState(false);
   const [collabError, setCollabError] = useState("");
+  const [isConnected, setIsConnected] = useState(false);
+  const [activeUsers, setActiveUsers] = useState(1);
+  const updateTimeoutRef = useRef(null);
+  const isRemoteUpdateRef = useRef(false);
 
-  // Real-time collaboration listener
   useEffect(() => {
     if (!id) return;
+
     setCollabLoading(true);
     setCollabError("");
-    const docRef = doc(db, "snippets", id);
-    const unsubscribe = onSnapshot(
-      docRef,
-      (docSnap) => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setFullCode({
-            html: data.html || "",
-            css: data.css || "",
-            javascript: data.javascript || "",
-          });
+
+    const handleMessage = (data) => {
+      console.log('Received WebSocket message:', data.type);
+      
+      switch (data.type) {
+        case 'sync':
+          isRemoteUpdateRef.current = true;
+          setFullCode(data.code);
           setCollabLoading(false);
-        } else {
-          setCollabError("Collaboration snippet not found.");
+          console.log('Synced with session:', data.code);
+          break;
+
+        case 'code-update':
+          console.log('Code update from another client');
+          isRemoteUpdateRef.current = true;
+          setFullCode(data.code);
+          break;
+
+        case 'user-joined':
+          setActiveUsers(data.totalClients);
+          console.log('User joined, total clients:', data.totalClients);
+          break;
+
+        case 'user-left':
+          setActiveUsers(data.totalClients);
+          console.log('User left, total clients:', data.totalClients);
+          break;
+
+        case 'error':
+          setCollabError(data.message);
           setCollabLoading(false);
-        }
-      },
-      (error) => {
-        setCollabError("Error loading collaboration: " + error.message);
-        setCollabLoading(false);
+          break;
+
+        default:
+          console.log('Unknown message type:', data.type);
       }
-    );
-    return () => unsubscribe();
+    };
+
+    const handleError = (error) => {
+      console.error('WebSocket error:', error);
+      setCollabError('Connection error. Retrying...');
+    };
+
+    const handleConnect = () => {
+      setIsConnected(true);
+      setCollabError("");
+      console.log('Connected to collaboration session');
+    };
+
+    wsService.connect(id, handleMessage, handleError, handleConnect);
+
+    return () => {
+      wsService.disconnect();
+      setIsConnected(false);
+    };
   }, [id, setFullCode]);
 
-  // Update Firestore when code changes (only if collaborating)
   useEffect(() => {
-    if (!id || !user) return;
-    const docRef = doc(db, "snippets", id);
-    const timeout = setTimeout(() => {
-      updateDoc(docRef, {
-        html: fullCode.html,
-        css: fullCode.css,
-        javascript: fullCode.javascript,
-      }).catch((err) => {
-        setCollabError("Error updating collaboration: " + err.message);
-      });
-    }, 500);
-    return () => clearTimeout(timeout);
-  }, [id, user, fullCode]);
+    if (!id || !isConnected) {
+      console.log('Skipping code update:', { id, isConnected });
+      return;
+    }
+    
+    if (isRemoteUpdateRef.current) {
+      console.log('Skipping local update (was remote update)');
+      isRemoteUpdateRef.current = false;
+      return;
+    }
 
-  // Save snippet globally only (profile functionality removed)
+    console.log('Scheduling code update to send...');
+    
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+
+    updateTimeoutRef.current = setTimeout(() => {
+      console.log('Sending code update via WebSocket:', fullCode);
+      wsService.sendCodeUpdate(fullCode);
+    }, 300);
+
+    return () => {
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
+    };
+  }, [id, isConnected, fullCode]);
+
   const handleSave = async () => {
     if (!user) {
       alert("You must be logged in to save code.");
       return;
     }
+    
     try {
-      // Save to global "snippets" only
-      const docRef = await addDoc(collection(db, "snippets"), {
-        html: fullCode.html,
-        css: fullCode.css,
-        javascript: fullCode.javascript,
-        owner: user.uid,
-        collaborators: [user.uid],
-        createdAt: new Date(),
+      const sessionId = Math.random().toString(36).substring(2, 15) + 
+                        Math.random().toString(36).substring(2, 15);
+      
+      const apiUrl = import.meta.env.VITE_WS_URL?.replace('ws://', 'http://').replace('wss://', 'https://') || 'http://localhost:8080';
+      
+      const response = await fetch(`${apiUrl}/session/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId: sessionId,
+          code: fullCode,
+        }),
       });
 
-      setShareId(docRef.id);
+      if (!response.ok) {
+        throw new Error('Failed to create session');
+      }
+
+      setShareId(sessionId);
       setShowLinks(true);
     } catch (err) {
+      console.error('Error saving code:', err);
       alert("Error saving code: " + err.message);
     }
   };
@@ -102,7 +162,6 @@ const Compiler = () => {
     navigator.clipboard.writeText(window.location.origin + text);
   };
 
-  // Combine code for live preview
   const srcDoc = `
     <html>
       <head>
@@ -171,7 +230,13 @@ const Compiler = () => {
 
         {id && collabLoading && (
           <div className="text-blue-400 text-center mb-2">
-            Loading collaborative code...
+            Connecting to collaboration session...
+          </div>
+        )}
+        {id && isConnected && (
+          <div className="text-green-400 text-center mb-2 flex items-center justify-center gap-2">
+            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+            Connected • {activeUsers} {activeUsers === 1 ? 'user' : 'users'} online
           </div>
         )}
         {id && collabError && (
